@@ -1,8 +1,10 @@
 #include "metropolis.h"
 #include  "stdlib.h"
+#include "stdio.h"
 #include "math.h"
-int* metropolis(int *lattice, int n, float T) {
-  int idx, *out;
+float* metropolis(int *lattice, int n, float T) {
+  int idx;
+  float *out;
   idx = pick_site(lattice, n);
   out = flip(lattice, n, T, idx);
   return out;
@@ -20,10 +22,11 @@ int pick_site(int *lattice, int n) {
 
 
 
-int* flip(int *lattice, int n, float T, int idx) {
-  int i, j, N, S, W, E, dE, dM;
+float* flip(int *lattice, int n, float T, int idx) {
+  int i, j, N, S, W, E;
+  float dE, dM;
   float pi;
-  int *dE_dM = malloc(2*sizeof(int));
+  float *dE_dM = malloc(2*sizeof(float));
   i = (int)((float)idx/(float)n); // tomo parte entera de la division como numero de fila
   j = idx%n; // tomo resto de la division como numero de columna
 
@@ -52,8 +55,8 @@ int* flip(int *lattice, int n, float T, int idx) {
 
 
   // Calculo el valor "pi" que me va a dar la probabilidad de aceptar el estado (flipeado el spin i,j)
-  dE = (2* *(lattice+n*i+j) * (N+W+S+E));
-  dM = 2* *(lattice+n*i+j);
+  dE = (float)(2* *(lattice+n*i+j) * (N+W+S+E))/(float)(n*n);
+  dM = 2.0* (float)(*(lattice+n*i+j))/(float)(n*n);
 
   if(dE < 0){
     *(lattice+n*i+j) *= -1; // Flipeo el spin que me da idx
@@ -68,13 +71,16 @@ int* flip(int *lattice, int n, float T, int idx) {
       *(dE_dM+1) = dM;
     }
   }
+
   return dE_dM;
 }
 
-int calc_energia(int *lattice, int n) {
-  int i, j, N, S, W, E, idx, energia;
-  float dE, pi, out;
-  energia = 0;
+
+
+float calc_energia(int *lattice, int n) {
+  int i, j, N, S, W, E, idx;
+  float dE, pi, out, energia;
+  energia = 0.0;
   for(idx = 0; idx<n*n; idx++){
     i = (int)((float)idx/(float)n); // tomo parte entera de la division como numero de fila
     j = idx%n; // tomo resto de la division como numero de columna
@@ -103,16 +109,17 @@ int calc_energia(int *lattice, int n) {
       S = *(lattice+n*i+j+n);
 
     // Sumo las interacciones con sur y este (porque en otra iteracion, el valor de la red sera sur y sera este de otro)
-    energia += (*(lattice+n*i+j) * (S+E));
+    energia += (float)(*(lattice+n*i+j) * (S+E))/(float)(n*n);
   }
   return energia;
 }
 
-int calc_magnet(int *lattice, int n) {
-  int i, magnet;
-  magnet = 0;
+float calc_magnet(int *lattice, int n) {
+  int i;
+  float magnet;
+  magnet = 0.0;
   for(i=0; i<n*n; i++){
-    magnet += *(lattice+i);
+    magnet += (float)(*(lattice+i))/(float)(n*n);
   }
   return magnet;
 }
