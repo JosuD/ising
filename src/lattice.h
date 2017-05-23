@@ -4,4 +4,5 @@ int fill_lattice(int *lattice, int n, float p);
 int print_lattice(int *lattice, int n);
 int randomspin(float p);
 void exportar_vector_int(int *vector, int n, char* nombre);
+void exportar_vector_float(float *vector, int n, char* nombre);
 #endif

@@ -43,3 +43,14 @@ void exportar_vector_int(int *vector, int n, char* nombre){
 		fprintf(fp, "%d\n", *(vector+i));
 	fclose(fp);
 }
+
+void exportar_vector_float(float *vector, int n, char* nombre){
+	int i;
+	FILE *fp;
+	fp = fopen(nombre, "a");
+	for(i = 0; i< n-1; i++){
+    fprintf(fp, "%f\t", *(vector+i));
+		}
+		fprintf(fp, "%f\n", *(vector+i));
+	fclose(fp);
+}
