@@ -1,0 +1,15 @@
+#!/bin/bash
+# My first bash script
+
+echo "Este script compila el archivo y el ejecutable lo mueve a /bin"
+
+echo "Compilando..."
+
+gcc -o ejecutable.e ising.c metropolis.c lattice.c -lm
+
+echo "Moviendo el archivo ejecutable a \bin"
+
+mv ejecutable.e ~/Escritorio/ising/bin
+
+echo "Movimiento ejecutado correctamente. Gracias por volar con FlyJosu"
+

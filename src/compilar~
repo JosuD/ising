@@ -1,0 +1,10 @@
+#!/bin/bash
+# My first bash script
+
+echo "Hooola gente, hoy voy a usar bash porque puedo"
+
+echo "Voy a escribir otra linea"
+
+echo "voy a saltar de carpeta"
+
+ipython

@@ -1,0 +1,14 @@
+#!/bin/bash
+# Programa que visualiza los datos de la carpeta \test
+
+echo "Programa que visualiza los datos de la carpeta \test"
+
+echo "Abriendo Python..."
+
+cd ~/Escritorio/ising/test
+
+python visualizar.py
+
+echo "Visualización finalizada"
+
+echo "Gracias por volar con FlyJosu"
