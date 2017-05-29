@@ -35,13 +35,13 @@ float* flip(int *lattice, int n, float T, int idx, float B, float J, float *lut)
 
   // Condiciones de contorno
 
-  if(j == n)
-    E = *(lattice+n*i+j-n); // el de la derecha es el de la otra punta de la red
+  if(j == n-1)
+    E = *(lattice+n*i+j-n+1); // el de la derecha es el de la otra punta de la red
   else
     E = *(lattice+n*i+j+1);
 
   if(j == 0)
-    W = *(lattice+n*i+j+n); // el de la izquierda es el de la otra punta de la red
+    W = *(lattice+n*i+j+n-1); // el de la izquierda es el de la otra punta de la red
   else
     W = *(lattice+n*i+j-1);
 
@@ -50,7 +50,7 @@ float* flip(int *lattice, int n, float T, int idx, float B, float J, float *lut)
   else
     N = *(lattice+n*i+j-n);
 
-  if(i == n)
+  if(i == n-1)
     S = *(lattice+n*i+j-n*(n-1)); // el de abajo es el de más arriba
   else
     S = *(lattice+n*i+j+n);
@@ -59,8 +59,9 @@ float* flip(int *lattice, int n, float T, int idx, float B, float J, float *lut)
   // Calculo el valor "pi" que me va a dar la probabilidad de aceptar el estado (flipeado el spin i,j)
   dE = (float)(-2* *(lattice+n*i+j) * (-J* (N+W+S+E) -B ));//(float)(n*n);
   dM = -2.0* (float)(*(lattice+n*i+j));//(float)(n*n);
-  pi = expf(-(float)dE / T);
-  //printf("dE = %f, pi = %f\n", (float)dE, pi);
+  pi = expf((float)dE / T);
+  //printf("dE = %f, pi = %f, suma de vecinos = %d\n", (float)dE, pi, (N+W+S+E));
+  //printf("N = %d, S = %d, W = %d, E = %d\n", N, S, W, E);
   if(dE < 0){
     *(lattice+n*i+j) *= -1; // Flipeo el spin que me da idx
     *dE_dM = dE;
@@ -94,13 +95,13 @@ float calc_energia(int *lattice, int n, float B, float J) {
 
     // Condiciones de contorno
 
-    if(j == n)
-      E = *(lattice+n*i+j-n); // el de la derecha es el de la otra punta de la red
+    if(j == n-1)
+      E = *(lattice+n*i+j-n+1); // el de la derecha es el de la otra punta de la red
     else
       E = *(lattice+n*i+j+1);
 
     if(j == 0)
-      W = *(lattice+n*i+j+n); // el de la izquierda es el de la otra punta de la red
+      W = *(lattice+n*i+j+n-1); // el de la izquierda es el de la otra punta de la red
     else
       W = *(lattice+n*i+j-1);
 
@@ -109,7 +110,7 @@ float calc_energia(int *lattice, int n, float B, float J) {
     else
       N = *(lattice+n*i+j-n);
 
-    if(i == n)
+    if(i == n-1)
       S = *(lattice+n*i+j-n*(n-1)); // el de abajo es el de más arriba
     else
       S = *(lattice+n*i+j+n);
