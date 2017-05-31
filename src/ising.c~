@@ -86,7 +86,7 @@ int main(int argc, char **argv) {
     }
 
   print_lattice(lattice, n);
-  printf("Exportando...esto puede durar un momento...\n");
+  printf("Exportando...\n");
   exportar_vector_float(E_terma, nfinal, "energia.txt");
   exportar_vector_float(M_terma, nfinal, "magnetizacion.txt");
   //exportar_vector_float(energia, nT, "energia.txt");
