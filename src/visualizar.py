@@ -17,8 +17,8 @@ print('\n')
 energia = np.genfromtxt('energia.txt', delimiter = '\t')
 magnet = np.genfromtxt('magnetizacion.txt', delimiter = '\t')
 
-T = np.arange(len(energia))
-#T = np.linspace(0,5, len(energia))
+#T = np.arange(len(energia))
+T = np.linspace(0,5, len(energia))
 
 plt.plot(T, energia, 'r.', label = 'datos', ms = 5)
 plt.title('energia.txt')

@@ -6,27 +6,30 @@
 #include "math.h"
 
 int main(int argc, char **argv) {
-  int n = 5;
+  int n = 64;
   int aceptados = 0;
-  int i,j, t;
+  int i,j,k,t;
   int *lattice = malloc(n * n * sizeof(int));
   float prob = 0.5;
   float T = 1.0;
   float dE = 0.0;
   float dM = 0.0;
   float* dE_dM;
-  int niter = 10000;
-  int niter_terma = 10000;
+  int niter = 500;
+  int niter_terma = 3*n*n;
   int nT = 100;
-  int nfinal = 3000;
+  int nfinal = 20000;
+  int niter_descorr = 500;
   int* sitiostest = malloc(niter*sizeof(int));
   float* linspace_T = malloc(nT*sizeof(float));
   float* energia = malloc(nT*sizeof(float));
   float* magnetizacion = malloc(nT*sizeof(float));
-  float* E_terma = malloc(nfinal*sizeof(float));
-  float* M_terma = malloc(nfinal*sizeof(float));
+  float* E_terma = malloc(niter_terma*sizeof(float));
+  float* M_terma = malloc(niter_terma*sizeof(float));
   float energia_iter = 0.0;
   float magnetizacion_iter = 0.0;
+  float E_estado = 0.0;
+  float M_estado = 0.0;
   float B = 0.0;
   float J = 1.0;
   float gap_E = 0.0;
@@ -44,23 +47,38 @@ int main(int argc, char **argv) {
   //*M_terma = calc_magnet(lattice, n);
   *energia = calc_energia(lattice, n, B, J);
   *magnetizacion = calc_magnet(lattice, n);
-  for(j=1; j<nT; j++){
+  E_estado = *energia;
+  M_estado = *magnetizacion;
+  for(j=0; j<nT; j++){
     printf("Temperatura %d/%d\n", j, nT);
-    for(i=1; i<nfinal; i++){
+    energia_iter = 0.0;
+    magnetizacion_iter = 0.0;
+    for(i=1; i<niter_terma; i++){ // pretermalizo
       dE_dM = metropolis(lattice, n, *(linspace_T+j), B, J, lut);
+      E_estado += *dE_dM;
+      M_estado += *(dE_dM+1);
       //printf("dE=%f, dM = %f\n",*dE_dM, *(dE_dM+1) );
       //*(E_terma+i) = *(E_terma+i-1)+*dE_dM;
       //*(M_terma+i) = *(M_terma+i-1)+*(dE_dM + 1);
       //print_lattice(lattice,n);
     }
-    dE_dM = metropolis(lattice, n, *(linspace_T+j), B, J, lut);
-    *(magnetizacion+j) = *(magnetizacion+j-1) + *(dE_dM+1);
-    *(energia+j) = *(energia+j-1) + *dE_dM;
+
+    for(i=1; i<niter; i++){ // promedio estados a esa T
+      for(k=0; k<niter_descorr; k++){ // avanzo niter_descorr para descorrelacionar
+        dE_dM = metropolis(lattice, n, *(linspace_T+j), B, J, lut);
+        E_estado += *dE_dM;
+        M_estado += *(dE_dM+1);
+      }
+      energia_iter += (E_estado)/(float)niter/(float)(n*n);
+      magnetizacion_iter += (M_estado)/(float)niter/(float)(n*n);
+    }
+    *(magnetizacion+j) = magnetizacion_iter;
+    *(energia+j) = energia_iter;
   }
   print_lattice(lattice, n);
   printf("Exportando...\n");
-  //exportar_vector_float(E_terma, nfinal, "energia.txt");
-  //exportar_vector_float(M_terma, nfinal, "magnetizacion.txt");
+  //exportar_vector_float(E_terma, niter_terma, "energia.txt");
+  //exportar_vector_float(M_terma, niter_terma, "magnetizacion.txt");
   exportar_vector_float(energia, nT, "energia.txt");
   exportar_vector_float(magnetizacion, nT, "magnetizacion.txt");
   return 0;

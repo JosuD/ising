@@ -59,7 +59,7 @@ float* flip(int *lattice, int n, float T, int idx, float B, float J, float *lut)
   // Calculo el valor "pi" que me va a dar la probabilidad de aceptar el estado (flipeado el spin i,j)
   dE = (float)(-2* *(lattice+n*i+j) * (-J* (N+W+S+E) -B ));//(float)(n*n);
   dM = -2.0* (float)(*(lattice+n*i+j));//(float)(n*n);
-  pi = expf((float)dE / T);
+  pi = expf(-(float)dE / T);
   //printf("dE = %f, pi = %f, suma de vecinos = %d\n", (float)dE, pi, (N+W+S+E));
   //printf("N = %d, S = %d, W = %d, E = %d\n", N, S, W, E);
   if(dE < 0){
