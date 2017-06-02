@@ -6,22 +6,26 @@
 #include "math.h"
 
 int main(int argc, char **argv) {
+
+// Parámetros
+
+  float B = 0.0;
+  float J = 1.0;
+  float T_p = 1.0;
+
+// Declaraciones de todo lo demás
+
   int n = 64;
-  int aceptados = 0;
-  int i,j,k,t;
+  int i,j,k;
   int *lattice = malloc(n * n * sizeof(int));
   float prob = 0.5;
-  float T = 1.0;
-  float dE = 0.0;
-  float dM = 0.0;
   float* dE_dM;
   int niter = 500;
   int niter_terma = 3*n*n;
   int nT = 100;
-  int nfinal = 20000;
   int niter_descorr = 500;
   int* sitiostest = malloc(niter*sizeof(int));
-  float* linspace_T = malloc(nT*sizeof(float));
+  float* T = malloc(nT*sizeof(float));
   float* energia = malloc(nT*sizeof(float));
   float* magnetizacion = malloc(nT*sizeof(float));
   float* E_terma = malloc(niter_terma*sizeof(float));
@@ -30,55 +34,66 @@ int main(int argc, char **argv) {
   float magnetizacion_iter = 0.0;
   float E_estado = 0.0;
   float M_estado = 0.0;
-  float B = 0.0;
-  float J = 1.0;
-  float gap_E = 0.0;
-  float* lut = malloc(5*sizeof(float));
+  float sumadevecinos = 0;
+  float* lut = malloc(12*sizeof(float)); // vector look up table
+
+// Linspace de temperaturas
   float paso = 5.0/nT;
-  *linspace_T = 0.001;
+  *T = 0.001;
   for(i=1; i<nT-1; i++){
-    *(linspace_T+i) = *(linspace_T+i-1) + paso;
+    *(T+i) = *(T+i-1) + paso;
   }
 
   srand(time(NULL));
-  fill_lattice(lattice, n, 0.9999);
+  fill_lattice(lattice, n, 0.999);
   print_lattice(lattice, n);
-  //*E_terma = calc_energia(lattice, n, B, J);
-  //*M_terma = calc_magnet(lattice, n);
   *energia = calc_energia(lattice, n, B, J);
   *magnetizacion = calc_magnet(lattice, n);
   E_estado = *energia;
   M_estado = *magnetizacion;
+
+  // Comienzo iteración de temperaturas
   for(j=0; j<nT; j++){
     printf("Temperatura %d/%d\n", j, nT);
     energia_iter = 0.0;
     magnetizacion_iter = 0.0;
-    for(i=1; i<niter_terma; i++){ // pretermalizo
-      dE_dM = metropolis(lattice, n, *(linspace_T+j), B, J, lut);
+
+    // Armo el vector look up table
+    for(i=0; i<5; i++){
+      sumadevecinos = -4.0 + 2.0*i; // esto recupera -4, -2, 0, 2, 4
+      *(lut+i) = expf(-(float)(-2*J* (sumadevecinos) - 2*B ) / *(T+j));  // tabla de exponenciales para s_i = -1
+      *(lut+5+i) = expf(-(float)(2*J* (sumadevecinos) + 2*B ) / *(T+j));    // tabla de exponenciales para s_i = 1
+      //printf("lut(%d) = %f, lut(%d), %f\n", i, *(lut+i), i+5, *(lut+5+i));
+    }
+    // Pretermalizo
+    for(i=1; i<niter_terma; i++){
+      dE_dM = metropolis(lattice, n, *(T+j), B, J, lut);
+      //printf("Hice metropolis, i = %d/%d\n", i, niter_terma);
       E_estado += *dE_dM;
       M_estado += *(dE_dM+1);
-      //printf("dE=%f, dM = %f\n",*dE_dM, *(dE_dM+1) );
-      //*(E_terma+i) = *(E_terma+i-1)+*dE_dM;
-      //*(M_terma+i) = *(M_terma+i-1)+*(dE_dM + 1);
-      //print_lattice(lattice,n);
+      free(dE_dM);
+      //printf("Metropolis i = %d/%d, E_estado = %f, M_estado = %f\n", i, niter_terma, E_estado, M_estado);
     }
-
-    for(i=1; i<niter; i++){ // promedio estados a esa T
-      for(k=0; k<niter_descorr; k++){ // avanzo niter_descorr para descorrelacionar
-        dE_dM = metropolis(lattice, n, *(linspace_T+j), B, J, lut);
+    // Promedio estados a esa T
+    for(i=1; i<niter; i++){
+      // Avanzo niter_descorr para descorrelacionar
+      for(k=0; k<niter_descorr; k++){
+        dE_dM = metropolis(lattice, n, *(T+j), B, J, lut);
+        //printf("Metropolis descorrelacionar k = %d/%d\n", k, niter_descorr);
         E_estado += *dE_dM;
         M_estado += *(dE_dM+1);
+        free(dE_dM);
       }
       energia_iter += (E_estado)/(float)niter/(float)(n*n);
       magnetizacion_iter += (M_estado)/(float)niter/(float)(n*n);
     }
+
+    // Guardo valores para cada T
     *(magnetizacion+j) = magnetizacion_iter;
     *(energia+j) = energia_iter;
   }
   print_lattice(lattice, n);
   printf("Exportando...\n");
-  //exportar_vector_float(E_terma, niter_terma, "energia.txt");
-  //exportar_vector_float(M_terma, niter_terma, "magnetizacion.txt");
   exportar_vector_float(energia, nT, "energia.txt");
   exportar_vector_float(magnetizacion, nT, "magnetizacion.txt");
   return 0;

@@ -23,7 +23,7 @@ int pick_site(int *lattice, int n) {
 
 
 float* flip(int *lattice, int n, float T, int idx, float B, float J, float *lut) {
-  int i, j, N, S, W, E;
+  int i, j, N, S, W, E, filalut, collut;
   float dE, dM;
   float pi;
   float *dE_dM = malloc(2*sizeof(float));
@@ -57,11 +57,14 @@ float* flip(int *lattice, int n, float T, int idx, float B, float J, float *lut)
 
 
   // Calculo el valor "pi" que me va a dar la probabilidad de aceptar el estado (flipeado el spin i,j)
-  dE = (float)(-2* *(lattice+n*i+j) * (-J* (N+W+S+E) -B ));//(float)(n*n);
-  dM = -2.0* (float)(*(lattice+n*i+j));//(float)(n*n);
-  pi = expf(-(float)dE / T);
-  //printf("dE = %f, pi = %f, suma de vecinos = %d\n", (float)dE, pi, (N+W+S+E));
-  //printf("N = %d, S = %d, W = %d, E = %d\n", N, S, W, E);
+  dE = (float)(-2* *(lattice+n*i+j) * (-J* (N+W+S+E) -B ));
+  dM = -2.0* (float)(*(lattice+n*i+j));
+
+  if(*(lattice+n*i+j)==-1) filalut = 0;
+  else filalut = 1;
+  collut = 2+(N+W+S+E)/2;
+  pi = *(lut+5*filalut+collut);
+
   if(dE < 0){
     *(lattice+n*i+j) *= -1; // Flipeo el spin que me da idx
     *dE_dM = dE;
@@ -73,9 +76,6 @@ float* flip(int *lattice, int n, float T, int idx, float B, float J, float *lut)
       *dE_dM = dE;
       *(dE_dM+1) = dM;
       //printf("paso con pi=%f\n", pi);
-    }
-    else{
-      //printf("rechazo\n");
     }
   }
 
