@@ -11,7 +11,8 @@ int main(int argc, char **argv) {
 
   float B = 0.0;
   float J = 1.0;
-  float T_p = 1.0;
+  //float T_p = 1.0;
+  int indice_T0 = 90;
 
 // Declaraciones de todo lo demás
 
@@ -35,7 +36,9 @@ int main(int argc, char **argv) {
   float E_estado = 0.0;
   float M_estado = 0.0;
   float sumadevecinos = 0;
+  float svm = 0.0;
   float* lut = malloc(12*sizeof(float)); // vector look up table
+  float* s_ik = malloc(n*sizeof(float));
 
 // Linspace de temperaturas
   float paso = 5.0/nT;
@@ -51,6 +54,10 @@ int main(int argc, char **argv) {
   *magnetizacion = calc_magnet(lattice, n);
   E_estado = *energia;
   M_estado = *magnetizacion;
+  // Inicializo vector de correlacion
+  for(k=0; k<n; k++){
+    *(s_ik+k) = 0.0;
+  }
 
   // Comienzo iteración de temperaturas
   for(j=0; j<nT; j++){
@@ -86,15 +93,32 @@ int main(int argc, char **argv) {
       }
       energia_iter += (E_estado)/(float)niter/(float)(n*n);
       magnetizacion_iter += (M_estado)/(float)niter/(float)(n*n);
+      // Me quedo con los valores de una T para ver su correlación
+      if(j==indice_T0){
+        svm += (float)(*(lattice+n*4))/(float)niter; // para el s_valormedio promedio los valores que toma un spin particular
+        for(k=0; k<n; k++){
+          printf("s_i x s_i+k = %f\n",(float)(*(lattice+n*4) * *(lattice+n*4+k)));
+          *(s_ik+k) += (float)(*(lattice+n*4) * *(lattice+n*4+k))/(float)niter; // para el s_i*s_i+k promedio los valores de cada producto
+        }
+      }
     }
 
     // Guardo valores para cada T
     *(magnetizacion+j) = magnetizacion_iter;
     *(energia+j) = energia_iter;
   }
-  print_lattice(lattice, n);
+
+  //Armo el vector correlación
+  for(k=0; k<n; k++){
+    printf("s_ik+%d = %f \n",k,*(s_ik+k));
+    *(s_ik+k) = (*(s_ik+k) - svm*svm)/(1.0/(float)niter - svm*svm);
+    printf("correlacion+%d = %f \n",k,*(s_ik+k));
+  }
+
+  //print_lattice(lattice, n);
   printf("Exportando...\n");
   exportar_vector_float(energia, nT, "energia.txt");
   exportar_vector_float(magnetizacion, nT, "magnetizacion.txt");
+  exportar_vector_float(s_ik, n, "correlacion.txt");
   return 0;
 }

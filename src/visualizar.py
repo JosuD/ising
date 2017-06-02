@@ -16,9 +16,11 @@ print('\n')
 
 energia = np.genfromtxt('energia.txt', delimiter = '\t')
 magnet = np.genfromtxt('magnetizacion.txt', delimiter = '\t')
+correlacion = np.genfromtxt('correlacion.txt', delimiter = '\t')
 
 #T = np.arange(len(energia))
 T = np.linspace(0,5, len(energia))
+k = np.arange(len(correlacion))
 
 plt.plot(T, energia, 'r.', label = 'datos', ms = 5)
 plt.title('energia.txt')
@@ -30,5 +32,11 @@ plt.plot(T, magnet, 'b.', label = 'datos', ms = 5)
 plt.title('magnetizacion.txt')
 plt.grid(True)
 plt.xlabel('T')
+
+plt.figure()
+plt.plot(k, correlacion, 'k.', label = 'datos', ms = 5)
+plt.title('correlacion.txt')
+plt.grid(True)
+plt.xlabel('k')
 
 plt.show()
