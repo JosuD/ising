@@ -9,14 +9,14 @@ int main(int argc, char **argv) {
 
 // Parámetros
 
-  float B = 0.0;
-  float J = 1.0;
+  float B = 0.1;
+  float J = -1.0;
   //float T_p = 1.0;
   int indice_T0 = 90;
 
 // Declaraciones de todo lo demás
 
-  int n = 64;
+  int n = 32;
   int i,j,k;
   int *lattice = malloc(n * n * sizeof(int));
   float prob = 0.5;
@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
   int niter = 500;
   int niter_terma = 3*n*n;
   int nT = 100;
-  int niter_descorr = 500;
+  int niter_descorr = 2*n*n;
   int* sitiostest = malloc(niter*sizeof(int));
   float* T = malloc(nT*sizeof(float));
   float* energia = malloc(nT*sizeof(float));
@@ -111,7 +111,7 @@ int main(int argc, char **argv) {
   //Armo el vector correlación
   for(k=0; k<n; k++){
     printf("s_ik+%d = %f \n",k,*(s_ik+k));
-    *(s_ik+k) = (*(s_ik+k) - svm*svm)/(1.0/(float)niter - svm*svm);
+    *(s_ik+k) = (*(s_ik+k) - svm*svm)/(1.0 - svm*svm);
     printf("correlacion+%d = %f \n",k,*(s_ik+k));
   }
 
