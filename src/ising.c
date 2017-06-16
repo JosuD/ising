@@ -9,7 +9,7 @@ int main(int argc, char **argv) {
 
 // Parámetros
 
-  float B = 0.1;
+  float B = 0.0;
   float J = -1.0;
   //float T_p = 1.0;
   int indice_T0 = 90;
@@ -31,6 +31,7 @@ int main(int argc, char **argv) {
   float* magnetizacion = malloc(nT*sizeof(float));
   float* E_terma = malloc(niter_terma*sizeof(float));
   float* M_terma = malloc(niter_terma*sizeof(float));
+  float* magnet_corr = malloc(niter*sizeof(float));
   float energia_iter = 0.0;
   float magnetizacion_iter = 0.0;
   float E_estado = 0.0;
@@ -96,8 +97,9 @@ int main(int argc, char **argv) {
       // Me quedo con los valores de una T para ver su correlación
       if(j==indice_T0){
         svm += (float)(*(lattice+n*4))/(float)niter; // para el s_valormedio promedio los valores que toma un spin particular
+        *(magnet_corr+i) = calc_magnet(lattice, n);
         for(k=0; k<n; k++){
-          printf("s_i x s_i+k = %f\n",(float)(*(lattice+n*4) * *(lattice+n*4+k)));
+          //printf("s_i x s_i+k = %f\n",(float)(*(lattice+n*4) * *(lattice+n*4+k)));
           *(s_ik+k) += (float)(*(lattice+n*4) * *(lattice+n*4+k))/(float)niter; // para el s_i*s_i+k promedio los valores de cada producto
         }
       }
@@ -120,5 +122,6 @@ int main(int argc, char **argv) {
   exportar_vector_float(energia, nT, "energia.txt");
   exportar_vector_float(magnetizacion, nT, "magnetizacion.txt");
   exportar_vector_float(s_ik, n, "correlacion.txt");
+  exportar_vector_float(magnet_corr, niter, "magnet_corr.txt");
   return 0;
 }
