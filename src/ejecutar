@@ -13,7 +13,10 @@ echo "Moviendo resultados a la carpeta \test"
 
 mv energia.txt ~/Escritorio/ising/test
 mv magnetizacion.txt ~/Escritorio/ising/test
-mv correlacion.txt ~/Escritorio/ising/test
+mv energia_std.txt ~/Escritorio/ising/test
+mv magnet_std.txt ~/Escritorio/ising/test
+mv magnet_corr.txt ~/Escritorio/ising/test
+mv cv.txt ~/Escritorio/ising/test
 
 echo "Archivos movidos con éxito"
 

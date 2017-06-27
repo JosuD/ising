@@ -10,9 +10,9 @@ int main(int argc, char **argv) {
 // Parámetros
 
   float B = 0.0;
-  float J = -1.0;
+  float J = 1.0;
   //float T_p = 1.0;
-  int indice_T0 = 90;
+  int indice_T0 = 45;
 
 // Declaraciones de todo lo demás
 
@@ -29,13 +29,20 @@ int main(int argc, char **argv) {
   float* T = malloc(nT*sizeof(float));
   float* energia = malloc(nT*sizeof(float));
   float* magnetizacion = malloc(nT*sizeof(float));
+  float* energia_std = malloc(nT*sizeof(float));
+  float* magnet_std = malloc(nT*sizeof(float));
+  float* cv = malloc(nT*sizeof(float));
   float* E_terma = malloc(niter_terma*sizeof(float));
   float* M_terma = malloc(niter_terma*sizeof(float));
   float* magnet_corr = malloc(niter*sizeof(float));
   float energia_iter = 0.0;
   float magnetizacion_iter = 0.0;
+  float energia_std_iter = 0.0;
+  float magnet_std_iter = 0.0;
   float E_estado = 0.0;
   float M_estado = 0.0;
+  float E1 = 0.0;
+  float E2 = 0.0;
   float sumadevecinos = 0;
   float svm = 0.0;
   float* lut = malloc(12*sizeof(float)); // vector look up table
@@ -65,7 +72,8 @@ int main(int argc, char **argv) {
     printf("Temperatura %d/%d\n", j, nT);
     energia_iter = 0.0;
     magnetizacion_iter = 0.0;
-
+    E2 = 0.0;
+    E1 = 0.0;
     // Armo el vector look up table
     for(i=0; i<5; i++){
       sumadevecinos = -4.0 + 2.0*i; // esto recupera -4, -2, 0, 2, 4
@@ -82,6 +90,7 @@ int main(int argc, char **argv) {
       free(dE_dM);
       //printf("Metropolis i = %d/%d, E_estado = %f, M_estado = %f\n", i, niter_terma, E_estado, M_estado);
     }
+
     // Promedio estados a esa T
     for(i=1; i<niter; i++){
       // Avanzo niter_descorr para descorrelacionar
@@ -93,7 +102,12 @@ int main(int argc, char **argv) {
         free(dE_dM);
       }
       energia_iter += (E_estado)/(float)niter/(float)(n*n);
+      energia_std_iter += (E_estado)*(E_estado)/(float)niter/(float)(n*n);
       magnetizacion_iter += (M_estado)/(float)niter/(float)(n*n);
+      magnet_std_iter += (M_estado)*(M_estado)/(float)niter/(float)(n*n);
+      E2 += (E_estado)*(E_estado);
+      E1 += (E_estado);
+
       // Me quedo con los valores de una T para ver su correlación
       if(j==indice_T0){
         svm += (float)(*(lattice+n*4))/(float)niter; // para el s_valormedio promedio los valores que toma un spin particular
@@ -105,23 +119,25 @@ int main(int argc, char **argv) {
       }
     }
 
+//( E2/mcSteps - E1*E1/(mcSteps*mcSteps) )/(N*T[m]*T[m]); Bangho Aero x2
+
     // Guardo valores para cada T
     *(magnetizacion+j) = magnetizacion_iter;
+    *(magnet_std+j) = (magnet_std_iter - magnetizacion_iter*magnetizacion_iter)/(float)niter;
     *(energia+j) = energia_iter;
-  }
-
-  //Armo el vector correlación
-  for(k=0; k<n; k++){
-    printf("s_ik+%d = %f \n",k,*(s_ik+k));
-    *(s_ik+k) = (*(s_ik+k) - svm*svm)/(1.0 - svm*svm);
-    printf("correlacion+%d = %f \n",k,*(s_ik+k));
+    *(energia_std+j) = energia_std_iter- energia_iter*energia_iter;
+    *(cv+j) = (E2/(float)niter - E1*E1/(float)niter/(float)niter)/(float)n/ *(T+j)/ *(T+j);
+    //printf("E2 = %f, E1 = %f, cv = %f\n", E2, E1, *(cv+j));
   }
 
   //print_lattice(lattice, n);
   printf("Exportando...\n");
   exportar_vector_float(energia, nT, "energia.txt");
   exportar_vector_float(magnetizacion, nT, "magnetizacion.txt");
-  exportar_vector_float(s_ik, n, "correlacion.txt");
+  exportar_vector_float(energia_std, nT, "energia_std.txt");
+  exportar_vector_float(magnet_std, nT, "magnet_std.txt");
+  exportar_vector_float(cv, nT, "cv.txt");
   exportar_vector_float(magnet_corr, niter, "magnet_corr.txt");
+
   return 0;
 }
